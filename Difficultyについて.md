@@ -10,10 +10,10 @@
 
 以下のように定数を定める。
 
-- $T_{max} = $ `0xffff << 208`
+- $T_{max}=$ `0xffff << 208`
 - $D_0 = 1$(多分)
 
-この時、$D_{now}$が現在のDifficulty、$D_{new}$が次のDifficulty、$T$が現在のTargetとすると、次のように計算が行われる。
+この時、 $D_{now}$ が現在のDifficulty、 $D_{new}$ が次のDifficulty、 $T$ が現在のTargetとすると、次のように計算が行われる。
 
 $D_{new} = D_{now} \times \{2016 \times 10 / 実際に2016ブロックのマイニングに掛かった時間[分]\}$
 
