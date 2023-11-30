@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/big"
 	"net/http"
 )
 
@@ -30,13 +31,19 @@ func (h *header) calculateHash() []byte {
 }
 
 func main() {
-	hash, h := fetchBlock(800000)
+	hash, h := fetchBlock(1)
 	calculatedHash := h.calculateHash()
 	fmt.Println("expected hash  :", hash)
 	fmt.Printf("calculated hash: %x\n", calculatedHash)
 
-	if target(h.bits) >= binary.BigEndian.Uint64(calculatedHash) {
-		fmt.Println("hash is less than target")
+	if hash == hex.EncodeToString(calculatedHash) {
+		fmt.Println("ハッシュの計算に成功")
+	} else {
+		panic("hash does not match")
+	}
+
+	if t := target(h.bits); bytes.Compare(calculatedHash, t) <= 0 {
+		fmt.Printf("%x >= %x\nhash is less than target\n", t, calculatedHash)
 	} else {
 		panic("hash is not less than target")
 	}
@@ -106,8 +113,10 @@ func decodeHexToLittleEndian(s string) [32]byte {
 	return r
 }
 
-func target(bits uint32) uint64 {
+func target(bits uint32) []byte {
 	index := bits >> 24
 	coefficient := bits & 0xffffff
-	return uint64(coefficient) << (8 * (index - 3))
+
+	c := big.NewInt(int64(coefficient))
+	return c.Lsh(c, uint(8*(index-3))).Bytes()
 }
