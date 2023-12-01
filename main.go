@@ -10,6 +10,7 @@ import (
 	"io"
 	"math/big"
 	"net/http"
+	"strings"
 )
 
 type header struct {
@@ -30,9 +31,39 @@ func (h *header) calculateHash() []byte {
 	return reverse(hash[:])
 }
 
+func (h *header) String() string {
+	buf := bytes.NewBuffer(make([]byte, 0, 128))
+	if err := binary.Write(buf, binary.LittleEndian, h); err != nil {
+		panic(err)
+	}
+	b := buf.Bytes()
+	b = append(b, 0x80)                        // 区切り
+	b = append(b, make([]byte, 128-len(b))...) // 0埋め
+	b[127] = 76 - 64                           // 末尾に0埋めされるbyte列の長さを追加
+
+	var s strings.Builder
+	for i, v := range b {
+		switch {
+		case i%32 == 0 && i != 0:
+			s.WriteString("\n")
+		case i%4 == 0 && i != 0:
+			s.WriteString(" ")
+		}
+		if 72 <= i && i < 76 {
+			s.WriteString("xx")
+			continue
+		}
+
+		s.WriteString(fmt.Sprintf("%02x", v))
+	}
+
+	return s.String()
+}
+
 func main() {
 	hash, h := fetchBlock(1)
 	calculatedHash := h.calculateHash()
+	fmt.Println(h.String())
 	fmt.Println("expected hash  :", hash)
 	fmt.Printf("calculated hash: %x\n", calculatedHash)
 
